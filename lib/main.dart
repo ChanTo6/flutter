@@ -25,13 +25,13 @@ class _CalculatorAppState extends State<CalculatorApp> {
       });
     } else if (buttonText == "+" || buttonText == "-" || buttonText == "x" || buttonText == "/") {
       setState(() {
-        num1 = double.parse(output);
+        num1 = double.tryParse(output) ?? 0;
         operand = buttonText;
         output = "0";
       });
     } else if (buttonText == "=") {
       setState(() {
-        num2 = double.parse(output);
+        num2 = double.tryParse(output) ?? 0;
         if (operand == "+") {
           output = (num1 + num2).toString();
         }
@@ -42,7 +42,11 @@ class _CalculatorAppState extends State<CalculatorApp> {
           output = (num1 * num2).toString();
         }
         if (operand == "/") {
-          output = (num1 / num2).toString();
+          output = num2 != 0 ? (num1 / num2).toString() : "Error";
+        }
+        // Remove trailing .0 for integers
+        if (output.endsWith('.0')) {
+          output = output.substring(0, output.length - 2);
         }
         num1 = 0;
         num2 = 0;
