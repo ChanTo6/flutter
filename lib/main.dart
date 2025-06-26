@@ -1,142 +1,31 @@
 import 'package:flutter/material.dart';
+import 'screens/login_screen.dart';
+import 'screens/register_screen.dart';
+import 'screens/home_screen.dart';
+import 'services/auth_service.dart';
 
-void main() {
-  runApp(CalculatorApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  final authService = AuthService(baseUrl: 'YOUR_BACKEND_URL');
+  final loggedIn = await authService.isLoggedIn();
+  runApp(DigitalLibraryApp(authService: authService, loggedIn: loggedIn));
 }
 
-class CalculatorApp extends StatefulWidget {
-  @override
-  _CalculatorAppState createState() => _CalculatorAppState();
-}
-
-class _CalculatorAppState extends State<CalculatorApp> {
-  String output = "0";
-  double num1 = 0;
-  double num2 = 0;
-  String operand = "";
-
-  void buttonPressed(String buttonText) {
-    if (buttonText == "C") {
-      setState(() {
-        output = "0";
-        num1 = 0;
-        num2 = 0;
-        operand = "";
-      });
-    } else if (buttonText == "+" || buttonText == "-" || buttonText == "x" || buttonText == "/") {
-      setState(() {
-        num1 = double.tryParse(output) ?? 0;
-        operand = buttonText;
-        output = "0";
-      });
-    } else if (buttonText == "=") {
-      setState(() {
-        num2 = double.tryParse(output) ?? 0;
-        if (operand == "+") {
-          output = (num1 + num2).toString();
-        }
-        if (operand == "-") {
-          output = (num1 - num2).toString();
-        }
-        if (operand == "x") {
-          output = (num1 * num2).toString();
-        }
-        if (operand == "/") {
-          output = num2 != 0 ? (num1 / num2).toString() : "Error";
-        }
-        // Remove trailing .0 for integers
-        if (output.endsWith('.0')) {
-          output = output.substring(0, output.length - 2);
-        }
-        num1 = 0;
-        num2 = 0;
-        operand = "";
-      });
-    } else {
-      setState(() {
-        if (output == "0") {
-          output = buttonText;
-        } else {
-          output = output + buttonText;
-        }
-      });
-    }
-  }
-
-  Widget buildButton(String buttonText) {
-    return Expanded(
-      child: GestureDetector(
-        onTap: () {
-          buttonPressed(buttonText);
-        },
-        child: SizedBox(
-          width: 80,
-          height: 80,
-          child: Center(
-            child: Text(
-              buttonText,
-              style: TextStyle(fontSize: 24.0),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
+class DigitalLibraryApp extends StatelessWidget {
+  final AuthService authService;
+  final bool loggedIn;
+  const DigitalLibraryApp({super.key, required this.authService, required this.loggedIn});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Calculator',
-      home: Scaffold(
-        appBar: AppBar(
-          title: Text('Calculator'),
-        ),
-        body: Column(
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: <Widget>[
-            Container(
-              padding: EdgeInsets.symmetric(horizontal: 16.0),
-              alignment: Alignment.centerRight,
-              child: Text(
-                output,
-                style: TextStyle(fontSize: 48.0),
-              ),
-            ),
-            Row(
-              children: <Widget>[
-                buildButton("7"),
-                buildButton("8"),
-                buildButton("9"),
-                buildButton("/"),
-              ],
-            ),
-            Row(
-              children: <Widget>[
-                buildButton("4"),
-                buildButton("5"),
-                buildButton("6"),
-                buildButton("x"),
-              ],
-            ),
-            Row(
-              children: <Widget>[
-                buildButton("1"),
-                buildButton("2"),
-                buildButton("3"),
-                buildButton("-"),
-              ],
-            ),
-            Row(
-              children: <Widget>[
-                buildButton("C"),
-                buildButton("0"),
-                buildButton("="),
-                buildButton("+"),
-              ],
-            ),
-          ],
-        ),
-      ),
+      title: 'Digital Library',
+      initialRoute: loggedIn ? '/home' : '/',
+      routes: {
+        '/': (context) => LoginScreen(authService: authService),
+        '/register': (context) => RegisterScreen(authService: authService),
+        '/home': (context) => HomeScreen(authService: authService),
+      },
     );
   }
 }
